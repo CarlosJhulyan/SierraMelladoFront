@@ -1,0 +1,15 @@
+{
+  "short_name": "Sierra Mellado",
+  "name": "Sierra Mellado Centro Ginecológico",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "type": "image/png",
+      "sizes": "71x85"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#56BFCF",
+  "background_color": "#F8F8F8"
+}
