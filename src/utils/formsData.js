@@ -111,6 +111,22 @@ const createAdmin = async (dataSend) => {
   }
 }
 
+const createDate = async (dataSend) => {
+  try {
+    const {
+      data: { data, success, message }
+    } = await axiosInstance.post(apiPath.date.createDate, dataSend);
+    return {
+      data,
+      message,
+      success
+    }
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+}
+
 const createService = async (dataSend) => {
   try {
     const {
@@ -139,6 +155,30 @@ const createDoctor = async (dataSend) => {
     const {
       data: { data, success, message }
     } = await axiosInstance.post(apiPath.admin.createMedico, formData);
+    return {
+      data,
+      success,
+      message
+    }
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+}
+
+const createOrder = async (dataSend) => {
+  const formData = new FormData();
+  formData.set('montoTotal', dataSend.montoTotal);
+  formData.set('importeTotal', dataSend.importeTotal);
+  formData.set('descripcion', dataSend.vaucher);
+  formData.set('estado', 'P');
+  formData.set('vuelto', dataSend.vuelto);
+  formData.set('codMetodo', dataSend.codMetodo);
+
+  try {
+    const {
+      data: { data, success, message }
+    } = await axiosInstance.post(apiPath.date.createOrder, formData);
     return {
       data,
       success,
@@ -221,6 +261,7 @@ const generateReportToPatient = async (dataSend) => {
   formData.set('paciente', dataSend.paciente);
   formData.set('resumen', dataSend.resumen);
   formData.set('archivo', dataSend.archivo);
+  formData.set('cita', dataSend.cita);
 
   try {
     const {
@@ -296,6 +337,77 @@ const deleteUser = async (id) => {
   }
 }
 
+const changeStatusOrder = async (dataSend) => {
+  try {
+    const {
+      data: { success, message }
+    } = await axiosInstance.patch(apiPath.date.changeStatus, dataSend);
+    return {
+      success,
+      message
+    }
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+}
+
+const changeDoctorAvatar = async (dataSend) => {
+  const formData = new FormData();
+
+  formData.set('avatar', dataSend.avatar);
+  formData.set('idMedico', dataSend.idMedico);
+
+  try {
+    const {
+      data: { data, success, message }
+    } = await axiosInstance.patch(apiPath.doctor.changeAvatar, formData);
+    return {
+      data,
+      success,
+      message
+    }
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+}
+
+const changePatientAvatar = async (dataSend) => {
+  const formData = new FormData();
+  formData.set('avatar', dataSend.avatar);
+  formData.set('idPaciente', dataSend.idPaciente);
+
+  try {
+    const {
+      data: { data, success, message }
+    } = await axiosInstance.patch(apiPath.patient.changeAvatar, formData);
+    return {
+      data,
+      success,
+      message
+    }
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+}
+
+const changePassword = async (dataSend) => {
+  try {
+    const {
+      data: { success, message }
+    } = await axiosInstance.patch(apiPath.auth.changePassword, dataSend);
+    return {
+      message,
+      success
+    }
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+}
+
 export {
   sendMessage,
   markToReadMessage,
@@ -314,4 +426,10 @@ export {
   createArticle,
   createService,
   createPatient,
+  createOrder,
+  createDate,
+  changeStatusOrder,
+  changePatientAvatar,
+  changeDoctorAvatar,
+  changePassword,
 }

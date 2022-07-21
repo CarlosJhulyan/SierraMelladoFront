@@ -4,7 +4,7 @@ import {
   Card,
   Col,
   Form,
-  Input,
+  Input, Modal,
   Row,
   Table, Typography
 } from "antd";
@@ -16,6 +16,7 @@ import {faEdit, faTrash} from "@fortawesome/free-solid-svg-icons";
 
 const ServicesPage = () => {
   const formRef = useRef();
+  const { confirm } = Modal;
   const { Text } = Typography;
   const [services, setServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(false);
@@ -36,6 +37,7 @@ const ServicesPage = () => {
       title: 'PRECIO',
       dataIndex: 'precio',
       key: 'precio',
+      render: (precio) => <span>S/. {Number(precio).toFixed(2)}</span>
     },
     {
       title: 'ACCIONES',
@@ -46,6 +48,16 @@ const ServicesPage = () => {
         <>
           <div className="ant-employed">
             <Text
+              onClick={() => {
+                confirm({
+                  content: '¿Esta seguro de eliminar este servicio?',
+                  onOk: () => {
+                    handleDeleteService(key);
+                  },
+                  okText: 'Si!',
+                  cancelText: 'No!'
+                });
+              }}
               style={{cursor:'pointer', margin: '0 auto'}}
             >
               <FontAwesomeIcon icon={faTrash} />
@@ -65,6 +77,22 @@ const ServicesPage = () => {
       formRef.current.resetFields();
     } else openNotification('Servicio', message, 'warning');
     setLoadingSave(false);
+  }
+
+  const handleDeleteService = (idServicio) => {
+    axiosInstance
+      .delete(`${apiPath.service.delete}/${idServicio}`)
+      .then(({ data }) => {
+        if (data.success) {
+          openNotification('Servicio', data.message);
+          getServices();
+        } else openNotification('Servicio', data.message, 'warning');
+      })
+      .catch(e => openNotification(
+        'Servicio',
+        'Error en la petición',
+        'error'
+      ));
   }
 
   const getServices = () => {

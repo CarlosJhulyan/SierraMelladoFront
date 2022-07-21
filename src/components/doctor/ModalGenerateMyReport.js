@@ -109,6 +109,11 @@ const ModalGenerateMyReport = ({
                   method='get'
                   multiple={false}
                   maxCount={1}
+                  beforeUpload={file => {
+                    const isPdf = file.type === 'application/pdf';
+                    if (!isPdf) openNotification('Archivo', 'El archivo tiene que ser de tipo pdf', 'warning');
+                    return isPdf || Upload.LIST_IGNORE;
+                  }}
                 >
                   <p className="ant-upload-drag-icon">
                     <InboxOutlined />

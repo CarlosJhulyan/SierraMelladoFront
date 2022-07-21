@@ -37,7 +37,7 @@ function Routes() {
   const SignUpPagePatient = lazy(() => import("../pages/patient/SignUpPage"));
   const DashboardPagePatient = lazy(() => import("../pages/patient/DashboardPage"));
   const ProfilePagePatient = lazy(() => import("../pages/patient/ProfilePage"));
-  const SurgeriesPagePatient = lazy(() => import("../pages/patient/SurgeriesPage"));
+  const SurgeriesPagePatient = lazy(() => import("../pages/patient/SchedulesDoctorsPage"));
   const TrackingPagePatient = lazy(() => import("../pages/patient/TrackingDatesPage"));
   const DatesPagePatient = lazy(() => import("../pages/patient/DatesPage"));
 
@@ -72,13 +72,13 @@ function Routes() {
                 <Route exact path="/admin/articulos" component={ArticlesPageAdmin} />
                 <Route exact path="/admin/servicios" component={ServicesPageAdmin} />
 
-                <Route exact path="/admin/sign-in" component={SignInPageAdmin} />
+                <Route exact path="/admin/ingreso" component={SignInPageAdmin} />
               </MainDashboard>
             </>
           ) : (
             <>
-              <Route exact path="/admin/sign-in" component={SignInPageAdmin} />
-              <Redirect exact from="/admin/*" to="/admin/sign-in" />
+              <Route exact path="/admin/ingreso" component={SignInPageAdmin} />
+              <Redirect exact from="/admin/*" to="/admin/ingreso" />
             </>
           )}
         </>
@@ -91,8 +91,8 @@ function Routes() {
               <MainDashboard>
                 <Route exact path="/paciente/tablero" component={DashboardPagePatient} />
                 <Route exact path="/paciente/mi-perfil" component={ProfilePagePatient} />
-                <Route exact path="/paciente/reservar-cirugia" component={SurgeriesPagePatient} />
-                <Route exact path="/paciente/reservar-cita" component={DatesPagePatient} />
+                <Route exact path="/paciente/horarios" component={SurgeriesPagePatient} />
+                <Route exact path="/paciente/reservar" component={DatesPagePatient} />
                 <Route exact path="/paciente/seguimiento" component={TrackingPagePatient} />
 
                 <Route exact path="/paciente/ingreso" component={SignInPagePatient} />

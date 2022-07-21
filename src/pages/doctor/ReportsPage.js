@@ -36,7 +36,7 @@ const ReportsPage = () => {
       title: '# INFORME',
       dataIndex: "numInforme",
       key: "numInforme",
-      render: (numInforme) => <span>{String(numInforme).padStart(5, '0')}</span>
+      render: (numInforme) => <span>INM-{String(numInforme).padStart(5, '0')}</span>
     },
     {
       title: 'MES',
@@ -119,7 +119,7 @@ const ReportsPage = () => {
       title: '# INFORME',
       dataIndex: "numInforme",
       key: "numInforme",
-      render: (numInforme) => <span>{String(numInforme).padStart(5, '0')}</span>
+      render: (numInforme) => <span>INP-{String(numInforme).padStart(5, '0')}</span>
     },
     {
       title: 'MES',

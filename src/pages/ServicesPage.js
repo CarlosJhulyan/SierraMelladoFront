@@ -23,7 +23,7 @@ const ServicesPage = () => {
       key: 3,
       image: g3,
       descripcion: 'PERSONAL',
-      link: '/admin/sign-in'
+      link: '/admin/ingreso'
     },
   ];
 

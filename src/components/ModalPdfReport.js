@@ -2,7 +2,7 @@ import React, {
   useEffect,
   useState
 } from "react";
-import {Button, Modal} from "antd";
+import {Modal} from "antd";
 import {baseUrlImage} from "../config/backend";
 import PdfReader from "./PdfReader";
 

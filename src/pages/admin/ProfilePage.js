@@ -1,4 +1,4 @@
-import {useContext, useState} from "react";
+import {useContext, useRef, useState} from "react";
 
 import {
   Row,
@@ -7,48 +7,42 @@ import {
   Button,
   Descriptions,
   Avatar,
-  message, Form, Input,
+  Form,
+  Input, Tag,
 } from "antd";
 
 import BgProfile from "../../assets/images/bg-signup.jpg";
 import {MyContext} from "../../context/AuthContext";
 import moment from "moment";
+import ModalUpsertAdmin from "../../components/admin/ModalUpsertAdmin";
+import {changePassword} from "../../utils/formsData";
+import openNotification from "../../utils/openNotification";
 
 function ProfilePage() {
+  const formPassRef = useRef();
   const { authAdmin } = useContext(MyContext);
-  const [imageURL, setImageURL] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [visibleModalUpdate, setVisibleModalUpdate] = useState(false);
+  const [loadingChangePass, setLoadingChangePass] = useState(false);
 
-  const getBase64 = (img, callback) => {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => callback(reader.result));
-    reader.readAsDataURL(img);
-  };
-
-  const beforeUpload = (file) => {
-    const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
-    if (!isJpgOrPng) {
-      message.error("You can only upload JPG/PNG file!");
-    }
-    const isLt2M = file.size / 1024 / 1024 < 2;
-    if (!isLt2M) {
-      message.error("Image must smaller than 2MB!");
-    }
-    return isJpgOrPng && isLt2M;
-  };
-
-  const handleChange = (info) => {
-    if (info.file.status === "uploading") {
-      setLoading(false);
-      return;
-    }
-    if (info.file.status === "done") {
-      getBase64(info.file.originFileObj, (imageUrl) => {
-        setLoading(false);
-        setImageURL(false);
-      });
-    }
-  };
+  const handleChangePass = (values) => {
+    setLoadingChangePass(true);
+    changePassword({
+      idUsuario: authAdmin.idUsuario,
+      clave: values.clave
+    })
+      .then(({ success, message }) => {
+        if (success) {
+          openNotification('Cambio de contraseña', message);
+          formPassRef.current.resetFields();
+        } else openNotification('Cambio de contraseña', message, 'warning');
+        setLoadingChangePass(false);
+      })
+      .catch(e => openNotification(
+        'Cambio de contraseña',
+        'Error en la petición',
+        'error'
+      ));
+  }
 
   const pencil = [
     <svg
@@ -108,28 +102,39 @@ function ProfilePage() {
           >
             <ul className="list settings-list">
               <li>
-                <h6 className="list-header text-sm text-muted">Actualizar mis credenciales</h6>
+                <h6 className="list-header text-sm text-muted">Cambiar mi contraseña</h6>
               </li>
-              <Form layout='vertical'>
-                <Form.Item label='Nombre de usuario'>
-                  <Input />
-                </Form.Item>
-                <Form.Item label='Contraseña'>
+              <Form
+                onFinish={handleChangePass}
+                layout='vertical'
+                ref={formPassRef}
+              >
+                <Form.Item
+                  name='clave'
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Complete el campo!'
+                    },
+                    {
+                      min: 6,
+                      message: 'Mínimo de caracteres 6'
+                    }
+                  ]}
+                >
                   <Input.Password size='small' />
                 </Form.Item>
                 <Form.Item>
                   <Button
                     block
                     type='primary'
-                    disabled
+                    htmlType='submit'
+                    loading={loadingChangePass}
                   >
-                    Guardar
+                    Cambiar
                   </Button>
                 </Form.Item>
               </Form>
-              <li>
-                <h6 className="list-header text-sm text-muted">Actualizar mi foto de perfil</h6>
-              </li>
             </ul>
           </Card>
         </Col>
@@ -138,7 +143,14 @@ function ProfilePage() {
             bordered={false}
             title={<h6 className="font-semibold m-0">Información de Administrador</h6>}
             className="header-solid h-full card-profile-information"
-            extra={<Button type="link">{pencil}</Button>}
+            extra={
+              <Button
+                type="link"
+                onClick={() => setVisibleModalUpdate(true)}
+              >
+                {pencil}
+              </Button>
+            }
             bodyStyle={{ paddingTop: 0, paddingBottom: 16 }}
           >
             <Descriptions>
@@ -152,7 +164,9 @@ function ProfilePage() {
                 {authAdmin.usuario}
               </Descriptions.Item>
               <Descriptions.Item label="Rol" span={3}>
-                {authAdmin.rol.toUpperCase()}
+                {authAdmin.rol.trim() === 'editor' && <Tag color="magenta">EDITOR</Tag>}
+                {authAdmin.rol.trim() === 'admin' && <Tag color="lime">ADMINISTRADOR</Tag>}
+                {authAdmin.rol.trim() === 'lector' && <Tag color="cyan">LECTOR</Tag>}
               </Descriptions.Item>
               <Descriptions.Item label="Estado de cuenta" span={3}>
                 {authAdmin.estado == 1 ? 'Activo' : 'No activo'}
@@ -164,6 +178,14 @@ function ProfilePage() {
           </Card>
         </Col>
       </Row>
+
+      {visibleModalUpdate && (
+        <ModalUpsertAdmin
+          currentAdmin={authAdmin}
+          visible={visibleModalUpdate}
+          setVisible={setVisibleModalUpdate}
+        />
+      )}
     </>
   );
 }

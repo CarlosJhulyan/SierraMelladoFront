@@ -1,7 +1,7 @@
 import React, {useRef, useState} from "react";
 import {
   Button,
-  Col, Form, Input,
+  Col, Form, Input, Modal,
   Row
 } from "antd";
 import lr from "../assets/images/LR.png";
@@ -12,6 +12,7 @@ import openNotification from "../utils/openNotification";
 const ClaimsPage = () => {
   const formRef = useRef();
   const [loadingSendMessage, setLoadingSendMessage] = useState(false);
+  const [visibleModal, setVisibleModal] = useState(false);
 
   const handleSendMessage = async (e) => {
     setLoadingSendMessage(true);
@@ -57,7 +58,6 @@ const ClaimsPage = () => {
               onFinish={handleSendMessage}
             >
               <Form.Item
-                label='Nombre'
                 name='nombreRem'
                 rules={[
                   {
@@ -67,19 +67,19 @@ const ClaimsPage = () => {
                 ]}
               >
                 <Input
+                  placeholder='Nombre'
                   size='large'
                 />
               </Form.Item>
               <Form.Item
-                label='Apellidos'
                 name='apellidosRem'
               >
                 <Input
+                  placeholder='Apellidos'
                   size='large'
                 />
               </Form.Item>
               <Form.Item
-                label='Celular'
                 name='celularRem'
                 rules={[
                   {
@@ -89,13 +89,13 @@ const ClaimsPage = () => {
                 ]}
               >
                 <Input
+                  placeholder='Celular'
                   prefix='+51'
                   size='small'
                   type='number'
                 />
               </Form.Item>
               <Form.Item
-                label='Correo'
                 name='correoRem'
                 rules={[
                   {
@@ -109,11 +109,11 @@ const ClaimsPage = () => {
                 ]}
               >
                 <Input
+                  placeholder='Correo'
                   size='large'
                 />
               </Form.Item>
               <Form.Item
-                label='Reclamación'
                 name='contenido'
                 rules={[
                   {
@@ -127,6 +127,7 @@ const ClaimsPage = () => {
                 ]}
               >
                 <Input.TextArea
+                  placeholder='Reclamación'
                   showCount
                   size='large'
                   maxLength={300}
@@ -136,15 +137,28 @@ const ClaimsPage = () => {
               </Form.Item>
               <Form.Item>
                 <Button
-                  htmlType='submit'
+                  htmlType='button'
                   block
                   shape="round"
                   type='primary'
                   className='warning'
                   style={{marginTop:30}}
+                  onClick={() => setVisibleModal(true)}
+                >
+                  LEER TERMINOS
+                </Button>
+              </Form.Item>
+              <Form.Item>
+                <Button
+                  htmlType='submit'
+                  block
+                  shape="round"
+                  type='primary'
+                  className='warning'
+                  // style={{marginTop:30}}
                   loading={loadingSendMessage}
                 >
-                  Enviar
+                  ENVIAR
                 </Button>
               </Form.Item>
             </Form>
@@ -163,6 +177,25 @@ const ClaimsPage = () => {
           </Col>
         </Row>
       </div>
+
+      {visibleModal && (
+        <Modal
+          title='Términos'
+          visible={visibleModal}
+          footer={false}
+          onCancel={() => setVisibleModal(false)}
+        >
+          <div style={{textAlign: 'center', fontSize:12}}>
+            Usted está accediendo al Libro de Reclamaciones de la clinica. Antes de ingresar, por favor leer atentamente las indicaciones. <br/><br/>
+            Un reclamo es la expresión de insatisfacción o disconformidad del usuario respecto de la atención brindada por nuestra entidad en el ejercicio de su función administrativa, de acuerdo al D.S. N° 042-2011-PCM. <br/><br/>
+            De tener alguna consulta puede hacerla aquí. <br/><br/>
+            En caso usted desee presentar una queja por alguna irregularidad en la atención de un procedimiento a cargo de la clinica, ello NO es un reclamo. En todo caso, usted debe presentar una carta o escrito, ante nuestra Mesa de Partes, ubicada en direccion. <br/><br/>
+            El registro de su reclamo será enviado a un buzón a cargo del responsable del Libro de Reclamaciones de la clinica, y una copia será enviada a su correo electrónico. De acuerdo a la norma, le brindaremos una respuesta en un plazo máximo de treinta (30) días hábiles. <br/><br/>
+            Tener en cuenta que la fecha y hora de confirmación de la recepción será de acuerdo al horario de Mesa de Partes de la clinica (lunes a viernes de 08:30 a.m. a 04:30 p.m.). Pasado este horario o en días distintos, la solicitud podrá ser ingresada, pero se tendrá por presentada a partir del día hábil siguiente. <br/><br/>
+            Para formular su reclamo y este sea atendido oportunamente, usted deberá registrase aquí: <br/><br/>
+          </div>
+        </Modal>
+      )}
     </>
   );
 }

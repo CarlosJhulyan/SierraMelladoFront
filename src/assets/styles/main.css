@@ -9,7 +9,7 @@ body {
 }
 .ant-layout.ant-layout-has-sider {
   flex-direction: row;
-  background: rgba(72, 72, 127, 0.65);
+  background: rgba(72, 72, 127, 1);
 }
 .sider-dashboard {
   background: transparent;
@@ -3053,6 +3053,9 @@ aside.ant-layout-sider.ant-layout-sider-light.sider-primary.ant-layout-sider-pri
   background: transparent;
   box-shadow: none;
 }
+..ant-layout-sider-light {
+  background: transparent;
+}
 .uploadfile.pb-15 {
   padding-bottom: 16px;
 }
@@ -3158,6 +3161,18 @@ a {
   border-radius: 15px;
 }
 
+.layout-dashboard .ant-layout-sider.sider-primary .ant-menu-item.ant-menu-item-selected .active, .layout-dashboard .ant-layout-sider.sider-primary .ant-menu-item .active, .layout-dashboard .ant-layout-sider.sider-primary .ant-menu-submenu.ant-menu-item-selected .active, .layout-dashboard .ant-layout-sider.sider-primary .ant-menu-submenu .active {
+  color: #fff;
+}
+
+.layout-dashboard .ant-layout-sider.sider-primary .ant-menu-item a, .layout-dashboard .ant-layout-sider.sider-primary .ant-menu-submenu a {
+  color: #ccc;
+}
+
+.layout-dashboard .ant-layout-sider.sider-primary .ant-menu-item a:hover, .layout-dashboard .ant-layout-sider.sider-primary .ant-menu-submenu a:hover {
+  color: #fff;
+}
+
 /*===================== Victor =======================*/
 #header {
   background: #CFF9FF;
@@ -3251,6 +3266,12 @@ a {
 
 .mobile-nav-toggle.bi-x {
   color: #fff;
+}
+
+@media (max-width: 992px) {
+  .drawer-sidebar .ant-drawer-body aside.ant-layout-sider.ant-layout-sider-light.sider-primary.ant-layout-sider-primary {
+    background: #000;
+  }
 }
 
 @media (max-width: 920px) {

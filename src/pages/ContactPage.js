@@ -137,7 +137,6 @@ const ContactPage = () => {
               onFinish={handleSendMessage}
             >
               <Form.Item
-                label='Nombre'
                 name='nombreRem'
                 rules={[
                   {
@@ -147,19 +146,19 @@ const ContactPage = () => {
                 ]}
               >
                 <Input
+                  placeholder='Nombre'
                   size='large'
                 />
               </Form.Item>
               <Form.Item
-                label='Apellidos'
                 name='apellidosRem'
               >
                 <Input
+                  placeholder='Apellidos'
                   size='large'
                 />
               </Form.Item>
               <Form.Item
-                label='Celular'
                 name='celularRem'
                 rules={[
                   {
@@ -169,13 +168,13 @@ const ContactPage = () => {
                 ]}
               >
                 <Input
+                  placeholder='Celular'
                   prefix='+51'
                   size='small'
                   type='number'
                 />
               </Form.Item>
               <Form.Item
-                label='Correo'
                 name='correoRem'
                 rules={[
                   {
@@ -189,11 +188,11 @@ const ContactPage = () => {
                 ]}
               >
                 <Input
+                  placeholder='Correo'
                   size='large'
                 />
               </Form.Item>
               <Form.Item
-                label='Mensaje'
                 name='contenido'
                 rules={[
                   {
@@ -211,6 +210,7 @@ const ContactPage = () => {
                   size='large'
                   maxLength={300}
                   rows={5}
+                  placeholder='Mensaje'
                   // autoSize={true}
                 />
               </Form.Item>

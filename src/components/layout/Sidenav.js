@@ -149,7 +149,7 @@ const SidenavAdmin = ({ signOut, tables }) => {
           </NavLink>
         </Menu.Item>
         <Menu.Item key="9" style={{marginTop: 50}}>
-          <NavLink to="/admin/sign-in" onClick={signOut}>
+          <NavLink to="/admin/ingreso" onClick={signOut}>
             <span className="icon">
               <FontAwesomeIcon icon={faArrowRightFromBracket} />
             </span>
@@ -176,20 +176,20 @@ const SidenavPatient = ({ signOut, tables }) => {
             <span className="label">Tablero Principal</span>
           </NavLink>
         </Menu.Item>
+        <Menu.Item key="3">
+          <NavLink to="/paciente/horarios">
+            <span className="icon">
+              <FontAwesomeIcon icon={faCalendar} />
+            </span>
+            <span className="label">Horarios de Médicos</span>
+          </NavLink>
+        </Menu.Item>
         <Menu.Item key="2">
-          <NavLink to="/paciente/reservar-cita">
+          <NavLink to="/paciente/reservar">
             <span className="icon">
               {tables}
             </span>
             <span className="label">Reservar Cita</span>
-          </NavLink>
-        </Menu.Item>
-        <Menu.Item key="3">
-          <NavLink to="/paciente/reservar-cirugia">
-            <span className="icon">
-              <FontAwesomeIcon icon={faBed} />
-            </span>
-            <span className="label">Reservar Cirugía</span>
           </NavLink>
         </Menu.Item>
         <Menu.Item key="4">
@@ -231,7 +231,7 @@ const SidenavDoctor = ({ signOut, tables }) => {
         <Menu.Item key="2">
           <NavLink to="/medico/horarios">
             <span className="icon">
-              {tables}
+              <FontAwesomeIcon icon={faCalendar} />
             </span>
             <span className="label">Horarios</span>
           </NavLink>
@@ -247,7 +247,7 @@ const SidenavDoctor = ({ signOut, tables }) => {
         <Menu.Item key="4">
           <NavLink to="/medico/informes">
             <span className="icon">
-              <FontAwesomeIcon icon={faChartGantt} />
+              {tables}
             </span>
             <span className="label">Informes</span>
           </NavLink>

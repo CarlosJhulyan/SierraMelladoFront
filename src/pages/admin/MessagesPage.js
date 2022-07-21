@@ -28,7 +28,7 @@ import ModalPdfReport from "../../components/ModalPdfReport";
 const MessagesPage = () => {
   const { Text } = Typography;
   const { authAdmin } = useContext(MyContext);
-  const [pendingMessages, setPendingMessages] = useState([]);
+  const [recentMessages, setRecentMessages] = useState([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [reportsDoctors, setReportsDoctors] = useState([]);
   const [loadingReports, setLoadingReports] = useState(false);
@@ -162,17 +162,17 @@ const MessagesPage = () => {
     });
     if (success) {
       openNotification('Mensajes', message);
-      getPendingMessages();
+      getRecentMessages();
     }
     else openNotification('Mensajes', message, 'warning');
   }
 
-  const getPendingMessages = () => {
+  const getRecentMessages = () => {
     setLoadingMessages(true);
     axiosInstance
       .get(apiPath.message.getRecent)
       .then(({ data }) => {
-        if (data.success) setPendingMessages(data.data);
+        if (data.success) setRecentMessages(data.data);
         else openNotification('Mensajes', data.message, 'warning');
         setLoadingMessages(false);
       })
@@ -202,7 +202,7 @@ const MessagesPage = () => {
   }
 
   useEffect(() => {
-    getPendingMessages();
+    getRecentMessages();
     getReportsDoctors();
   }, [])
 
@@ -219,7 +219,7 @@ const MessagesPage = () => {
                 <Table
                   columns={columnsMessages}
                   size='small'
-                  dataSource={pendingMessages}
+                  dataSource={recentMessages}
                   loading={loadingMessages}
                   pagination={{
                     pageSize: 5,

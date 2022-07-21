@@ -14,11 +14,9 @@ import {
 } from "antd";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {
-  faAngleRight,
   faEdit,
   faTrash
 } from "@fortawesome/free-solid-svg-icons";
-import {Link} from "react-router-dom";
 import {apiPath, axiosInstance} from "../../utils/api";
 import {baseUrlImage} from "../../config/backend";
 import openNotification from "../../utils/openNotification";
@@ -174,12 +172,6 @@ const WorkersPage = () => {
             >
               <FontAwesomeIcon icon={faTrash} />
             </Text>
-            <Text
-              onClick={() => handleSelectDoctor(record)}
-              style={{cursor:'pointer'}}
-            >
-              <FontAwesomeIcon icon={faAngleRight} />
-            </Text>
           </div>
         </>
       )
@@ -264,12 +256,6 @@ const WorkersPage = () => {
               style={{cursor:'pointer'}}
             >
               <FontAwesomeIcon icon={faTrash} />
-            </Text>
-            <Text
-              onClick={() => handleSelectAdmin(record)}
-              style={{cursor:'pointer'}}
-            >
-              <FontAwesomeIcon icon={faAngleRight} />
             </Text>
           </div>
         </>

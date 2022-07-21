@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useContext, useEffect, useRef, useState} from "react";
 import {
   Button,
   Col,
@@ -13,6 +13,7 @@ import moment from "moment";
 import {apiPath, axiosInstance} from "../../utils/api";
 import openNotification from "../../utils/openNotification";
 import {createDoctor, createSpeciality, createUser, deleteUser} from "../../utils/formsData";
+import {MyContext, STORAGE_NAME_DOCTOR} from "../../context/AuthContext";
 
 const ModalUpsertDoctor = ({
                              visible,
@@ -21,9 +22,10 @@ const ModalUpsertDoctor = ({
                              getDoctorsList
 }) => {
   const formRef = useRef();
+  const { authDoctor } = useContext(MyContext);
   const [specialities ,setSpecialities] = useState([]);
   const [loadingSpecialities ,setLoadingSpecialities] = useState(false);
-  const [loadingCreateDoctor ,setLoadingCreateDoctor] = useState(false);
+  const [loadingUpsertDoctor ,setLoadingUpsertDoctor] = useState(false);
 
   const getSpecialities = () => {
     setLoadingSpecialities(true);
@@ -46,8 +48,8 @@ const ModalUpsertDoctor = ({
       ));
   }
 
-  const handleCreateMedico = async (data) => {
-    setLoadingCreateDoctor(true);
+  const handleCreateDoctor = async (data) => {
+    setLoadingUpsertDoctor(true);
     const dataFormat = {
       ...data,
       fechaNac: moment(data.fechaNac._d).format('YYYY-MM-DD')
@@ -61,7 +63,7 @@ const ModalUpsertDoctor = ({
       } = await createUser(dataFormat);
       if (!successUser) {
         openNotification('Usuario', message, 'warning');
-        setLoadingCreateDoctor(false);
+        setLoadingUpsertDoctor(false);
         return;
       }
       dataFormat.idUsuario = dataUser.idUsuario;
@@ -73,7 +75,7 @@ const ModalUpsertDoctor = ({
       if (!successDoctor) {
         openNotification('Médico', messageDoctor, 'warning');
         await deleteUser(dataUser.idUsuario);
-        setLoadingCreateDoctor(false);
+        setLoadingUpsertDoctor(false);
         return;
       }
       dataFormat.idMedico = dataDoctor.idMedico;
@@ -95,7 +97,62 @@ const ModalUpsertDoctor = ({
     } catch (e) {
       openNotification('Registro de médico', e.message, 'error');
     }
-    setLoadingCreateDoctor(false);
+    setLoadingUpsertDoctor(false);
+  }
+
+  const handleUpdateDoctor = async (data) => {
+    setLoadingUpsertDoctor(true);
+    const dataFormat = {
+      ...currentDoctor,
+      ...data,
+      fechaNac: moment(data.fechaNac._d).format('YYYY-MM-DD')
+    }
+
+    try {
+      const {
+        data: { success: successUser, message: messageUser }
+      } = await axiosInstance.put(apiPath.admin.updateUsuario, dataFormat);
+
+      if (!successUser) {
+        openNotification('Actualización de usuario', messageUser, 'warning');
+        setLoadingUpsertDoctor(false);
+        return;
+      }
+
+      const {
+        data: { success: successDoctor, message: messageDoctor }
+      } = await axiosInstance.put(apiPath.doctor.updateDoctor, dataFormat);
+
+      if (successDoctor) {
+        if (!getDoctorsList) {
+          openNotification('Actualización de datos', messageDoctor + '. Actualiza la pagina para ver los cambios.');
+          localStorage.setItem(STORAGE_NAME_DOCTOR, JSON.stringify({
+            ...authDoctor,
+            apellidoMaterno: dataFormat.apellidoMaterno,
+            apellidoPaterno: dataFormat.apellidoPaterno,
+            nombres: dataFormat.nombres,
+            dni: dataFormat.dni,
+            fechaNac: dataFormat.fechaNac,
+            correo: dataFormat.correo,
+            celular: dataFormat.celular,
+            codColegiado: dataFormat.codColegiado
+          }));
+          setVisible(false);
+        } else {
+          openNotification('Actualización de datos', messageDoctor);
+          getDoctorsList();
+          setVisible(false);
+        }
+      } else openNotification('Actualización de datos', messageDoctor, 'warning');
+    } catch (e) {
+      openNotification('Actualización de datos', e.message, 'error');
+    }
+    setLoadingUpsertDoctor(false);
+  }
+
+  const handleUpsertDoctor = async (values) => {
+    if (currentDoctor) await handleUpdateDoctor(values);
+    else await handleCreateDoctor(values);
   }
 
   useEffect(() => {
@@ -103,7 +160,7 @@ const ModalUpsertDoctor = ({
       formRef.current?.setFieldsValue({
         ...currentDoctor,
         fechaNac: moment(currentDoctor?.fechaNac),
-        especialidad: currentDoctor.especialidades.map(item => item.codEspecialidad)
+        especialidad: currentDoctor.especialidades && currentDoctor.especialidades.map(item => item.codEspecialidad)
       });
       console.log(currentDoctor)
     } else {
@@ -125,7 +182,7 @@ const ModalUpsertDoctor = ({
         <Button
           htmlType='submit'
           form='form-doctor'
-          loading={loadingCreateDoctor}
+          loading={loadingUpsertDoctor}
         >
           {currentDoctor ? 'Actualizar' : 'Crear'}
         </Button>
@@ -140,7 +197,7 @@ const ModalUpsertDoctor = ({
           span: 14,
         }}
         layout="horizontal"
-        onFinish={handleCreateMedico}
+        onFinish={handleUpsertDoctor}
         ref={formRef}
         style={{margin:0}}
       >
@@ -182,40 +239,44 @@ const ModalUpsertDoctor = ({
             >
               <Input />
             </Form.Item>
-            <Form.Item
-              label="Nombre de Usuario"
-              name='usuario1'
-              rules={[
-                {
-                  required: true,
-                  message: 'Necesario para el ingreso!'
-                },
-                {
-                  min: 6,
-                  message: 'Tiene que ser mayor a 6 caracteres'
-                }
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Contraseña"
-              name='clave'
-              rules={[
-                {
-                  required: true,
-                  message: 'Ingresa una contraseña!'
-                },
-                {
-                  min: 6,
-                  message: 'Tiene que ser mayor a 8 caracteres'
-                }
-              ]}
-            >
-              <Input.Password
-              size='small'
-              />
-            </Form.Item>
+            {!currentDoctor && (
+              <>
+                <Form.Item
+                  label="Nombre de Usuario"
+                  name='usuario1'
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Necesario para el ingreso!'
+                    },
+                    {
+                      min: 6,
+                      message: 'Tiene que ser mayor a 6 caracteres'
+                    }
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  label="Contraseña"
+                  name='clave'
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Ingresa una contraseña!'
+                    },
+                    {
+                      min: 6,
+                      message: 'Tiene que ser mayor a 8 caracteres'
+                    }
+                  ]}
+                >
+                  <Input.Password
+                    size='small'
+                  />
+                </Form.Item>
+              </>
+            )}
             <Form.Item
               label="Código Colegiado"
               name='codColegiado'
@@ -232,20 +293,36 @@ const ModalUpsertDoctor = ({
             >
               <Input type='number' />
             </Form.Item>
+            {currentDoctor && (
+              <Form.Item
+                label="Correo"
+                name='correo'
+                rules={[
+                  {
+                    type: 'email',
+                    message: 'Ingresa un corero valido!'
+                  }
+                ]}
+              >
+                <Input />
+              </Form.Item>
+            )}
           </Col>
           <Col xl={12} lg={12} md={11} sm={22} xs={22}>
-            <Form.Item
-              label="Correo"
-              name='correo'
-              rules={[
-                {
-                  type: 'email',
-                  message: 'Ingresa un corero valido!'
-                }
-              ]}
-            >
-              <Input />
-            </Form.Item>
+            {!currentDoctor && (
+              <Form.Item
+                label="Correo"
+                name='correo'
+                rules={[
+                  {
+                    type: 'email',
+                    message: 'Ingresa un corero valido!'
+                  }
+                ]}
+              >
+                <Input />
+              </Form.Item>
+            )}
             <Form.Item
               label="DNI"
               name='dni'
@@ -279,32 +356,6 @@ const ModalUpsertDoctor = ({
               />
             </Form.Item>
             <Form.Item
-              label="Especialidades"
-              name='especialidad'
-              rules={[
-                {
-                  required: true,
-                  message: 'Elige al menos 1 especialidad!'
-                }
-              ]}
-            >
-              <Select
-                mode='multiple'
-                size='large'
-                placeholder='Selecciona'
-                disabled={loadingSpecialities}
-              >
-                {specialities.map(item => (
-                  <Select.Option
-                    key={item.codEspecialidad}
-                    value={item.codEspecialidad}
-                  >
-                    {item.descripcion}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item
               label="Fecha Nacimiento"
               name='fechaNac'
               rules={[
@@ -319,6 +370,32 @@ const ModalUpsertDoctor = ({
                 size='large'
                 format='DD/MM/YYYY'
               />
+            </Form.Item>
+            <Form.Item
+              label="Especialidades"
+              name='especialidad'
+              rules={[
+                {
+                  required: true,
+                  message: 'Elige al menos 1 especialidad!'
+                }
+              ]}
+            >
+              <Select
+                mode='multiple'
+                size='large'
+                placeholder='Selecciona'
+                disabled={loadingSpecialities || currentDoctor}
+              >
+                {specialities.map(item => (
+                  <Select.Option
+                    key={item.codEspecialidad}
+                    value={item.codEspecialidad}
+                  >
+                    {item.descripcion}
+                  </Select.Option>
+                ))}
+              </Select>
             </Form.Item>
           </Col>
         </Row>

@@ -14,13 +14,16 @@ import openNotification from "../../utils/openNotification";
 import {MyContext} from "../../context/AuthContext";
 import ModalDetailsDate from "../../components/patient/ModalDetailsDate";
 import moment from "moment";
+import ModalPdfReport from "../../components/ModalPdfReport";
 
 const TrackingDatesPage = () => {
   const { Text } = Typography;
   const { authPatient } = useContext(MyContext);
   const [data, setData] = useState([]);
+  const [currentFile, setCurrentFile] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
   const [visibleModalDetails, setVisibleModalDetails] = useState(false);
+  const [visibleModalReport, setVisibleModalReport] = useState(false);
   const [currentDate, setCurrentDate] = useState();
 
   const getDatesByPatient = () => {
@@ -44,17 +47,29 @@ const TrackingDatesPage = () => {
     setVisibleModalDetails(true);
   }
 
+  const handleGetReportByDate = (idCita) => {
+    axiosInstance
+      .get(`${apiPath.report.getPatientByDate}/${idCita}`)
+      .then(({ data }) => {
+        if (data.success) {
+          setCurrentFile(data.data.archivo);
+          setVisibleModalReport(true);
+        }
+        else openNotification('Reporte de cita', data.message, 'warning');
+      })
+      .catch(e => openNotification(
+        'Reporte de cita',
+        'Error en la petición',
+        'error'
+      ));
+  }
+
   const columns = [
     {
       title: '# ORDEN',
       dataIndex: 'numOrden',
       key: 'numOrden',
       render: (numOrden) => <span>{String(numOrden).padStart(9, '0')}</span>
-    },
-    {
-      title: 'DESCRIPCIÓN',
-      dataIndex: 'descripcion',
-      key: 'descripcion',
     },
     {
       title: 'FECHA DE CITA',
@@ -94,6 +109,7 @@ const TrackingDatesPage = () => {
               <FontAwesomeIcon icon={faEye} />
             </Text>
             <Text
+              onClick={() => handleGetReportByDate(record.idCita)}
               style={{cursor:'pointer', margin: '0 auto'}}
             >
               <FontAwesomeIcon icon={faFileInvoice} />
@@ -141,6 +157,12 @@ const TrackingDatesPage = () => {
         currentDate={currentDate}
         visible={visibleModalDetails}
         setVisible={setVisibleModalDetails}
+      />
+
+      <ModalPdfReport
+        currentFile={currentFile}
+        setVisible={setVisibleModalReport}
+        visible={visibleModalReport}
       />
     </>
   );

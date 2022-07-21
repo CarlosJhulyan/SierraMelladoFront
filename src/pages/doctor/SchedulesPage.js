@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {
-  AutoComplete, Avatar, Button,
+  Avatar, Button,
   Card,
   Col, Form, Popconfirm,
   Row, Select, Table, TimePicker
@@ -10,152 +10,7 @@ import openNotification from "../../utils/openNotification";
 import {MyContext} from "../../context/AuthContext";
 import {createScheduleDoctor, deleteSchedule} from "../../utils/formsData";
 import moment from "moment";
-
-const schedulesInit = [
-  {
-    key: 0,
-    hora: '00:00',
-    lunes: 'N/A',
-    martes: 'N/A',
-    miercoles: 'N/A',
-    jueves: 'N/A',
-    viernes: 'N/A',
-    sabado: 'N/A',
-    domingo: 'N/A',
-  },
-  {
-    key: 2,
-    hora: '02:00',
-    lunes: 'N/A',
-    martes: 'N/A',
-    miercoles: 'N/A',
-    jueves: 'N/A',
-    viernes: 'N/A',
-    sabado: 'N/A',
-    domingo: 'N/A',
-  },
-  {
-    key: 4,
-    hora: '04:00',
-    lunes: 'N/A',
-    martes: 'N/A',
-    miercoles: 'N/A',
-    jueves: 'N/A',
-    viernes: 'N/A',
-    sabado: 'N/A',
-    domingo: 'N/A',
-  },
-  {
-    key: 6,
-    hora: '06:00',
-    lunes: 'N/A',
-    martes: 'N/A',
-    miercoles: 'N/A',
-    jueves: 'N/A',
-    viernes: 'N/A',
-    sabado: 'N/A',
-    domingo: 'N/A',
-  },
-  {
-    key: 8,
-    hora: '08:00',
-    lunes: 'N/A',
-    martes: 'N/A',
-    miercoles: 'N/A',
-    jueves: 'N/A',
-    viernes: 'N/A',
-    sabado: 'N/A',
-    domingo: 'N/A',
-  },
-  {
-    key: 10,
-    hora: '10:00',
-    lunes: 'N/A',
-    martes: 'N/A',
-    miercoles: 'N/A',
-    jueves: 'N/A',
-    viernes: 'N/A',
-    sabado: 'N/A',
-    domingo: 'N/A',
-  },
-  {
-    key: 12,
-    hora: '12:00',
-    lunes: 'N/A',
-    martes: 'N/A',
-    miercoles: 'N/A',
-    jueves: 'N/A',
-    viernes: 'N/A',
-    sabado: 'N/A',
-    domingo: 'N/A',
-  },
-  {
-    key: 14,
-    hora: '14:00',
-    lunes: 'N/A',
-    martes: 'N/A',
-    miercoles: 'N/A',
-    jueves: 'N/A',
-    viernes: 'N/A',
-    sabado: 'N/A',
-    domingo: 'N/A',
-  },
-  {
-    key: 16,
-    hora: '16:00',
-    lunes: 'N/A',
-    martes: 'N/A',
-    miercoles: 'N/A',
-    jueves: 'N/A',
-    viernes: 'N/A',
-    sabado: 'N/A',
-    domingo: 'N/A',
-  },
-  {
-    key: 18,
-    hora: '18:00',
-    lunes: 'N/A',
-    martes: 'N/A',
-    miercoles: 'N/A',
-    jueves: 'N/A',
-    viernes: 'N/A',
-    sabado: 'N/A',
-    domingo: 'N/A',
-  },
-  {
-    key: 20,
-    hora: '20:00',
-    lunes: 'N/A',
-    martes: 'N/A',
-    miercoles: 'N/A',
-    jueves: 'N/A',
-    viernes: 'N/A',
-    sabado: 'N/A',
-    domingo: 'N/A',
-  },
-  {
-    key: 22,
-    hora: '22:00',
-    lunes: 'N/A',
-    martes: 'N/A',
-    miercoles: 'N/A',
-    jueves: 'N/A',
-    viernes: 'N/A',
-    sabado: 'N/A',
-    domingo: 'N/A',
-  },
-  {
-    key: 24,
-    hora: '24:00',
-    lunes: 'N/A',
-    martes: 'N/A',
-    miercoles: 'N/A',
-    jueves: 'N/A',
-    viernes: 'N/A',
-    sabado: 'N/A',
-    domingo: 'N/A',
-  },
-];
+import {schedulesInit} from "../../config/schedules";
 
 const SchedulesPage = () => {
   const formRef = useRef();
@@ -207,7 +62,7 @@ const SchedulesPage = () => {
           {lunes === 'N/A' ? (
             <Avatar
               size='large'
-              style={{background: '#48487F'}}
+              style={{background: 'rgba(72,72,127,0.4)'}}
             >
               {lunes}
             </Avatar>
@@ -241,7 +96,7 @@ const SchedulesPage = () => {
           {martes === 'N/A' ? (
             <Avatar
               size='large'
-              style={{background: '#48487F'}}
+              style={{background: 'rgba(72,72,127,0.4)'}}
             >
               {martes}
             </Avatar>
@@ -275,7 +130,7 @@ const SchedulesPage = () => {
           {miercoles === 'N/A' ? (
             <Avatar
               size='large'
-              style={{background: '#48487F'}}
+              style={{background: 'rgba(72,72,127,0.4)'}}
             >
               {miercoles}
             </Avatar>
@@ -309,7 +164,7 @@ const SchedulesPage = () => {
           {jueves === 'N/A' ? (
             <Avatar
               size='large'
-              style={{background: '#48487F'}}
+              style={{background: 'rgba(72,72,127,0.4)'}}
             >
               {jueves}
             </Avatar>
@@ -343,7 +198,7 @@ const SchedulesPage = () => {
           {viernes === 'N/A' ? (
             <Avatar
               size='large'
-              style={{background: '#48487F'}}
+              style={{background: 'rgba(72,72,127,0.4)'}}
             >
               {viernes}
             </Avatar>
@@ -377,7 +232,7 @@ const SchedulesPage = () => {
           {sabado === 'N/A' ? (
             <Avatar
               size='large'
-              style={{background: '#48487F'}}
+              style={{background: 'rgba(72,72,127,0.4)'}}
             >
               {sabado}
             </Avatar>
@@ -411,7 +266,7 @@ const SchedulesPage = () => {
           {domingo === 'N/A' ? (
             <Avatar
               size='large'
-              style={{background: '#48487F'}}
+              style={{background: 'rgba(72,72,127,0.4)'}}
             >
               {domingo}
             </Avatar>
@@ -501,6 +356,12 @@ const SchedulesPage = () => {
                 }}
                 layout="horizontal"
                 onFinish={handleCreateSchedule}
+                onValuesChange={(e, values) => {
+                  formRef.current.setFieldsValue({
+                    ...values,
+                    horaFin: moment(values.horaInicio._d).add(2, 'hours')
+                  })
+                }}
               >
                 <Form.Item
                   label="Hora Inicio"
@@ -536,6 +397,7 @@ const SchedulesPage = () => {
                     size='large'
                     style={{width: '100%'}}
                     placeholder='Seleccionar hora'
+                    disabled
                   />
                 </Form.Item>
                 <Form.Item

@@ -1,12 +1,13 @@
 import React, {useEffect, useState} from "react";
 import {
   Col,
-  Descriptions,
+  Descriptions, Image,
   Modal, Row, Spin
 } from "antd";
 import {apiPath, axiosInstance} from "../../utils/api";
 import openNotification from "../../utils/openNotification";
 import moment from "moment";
+import {baseUrlImage} from "../../config/backend";
 
 const ModalDetailsDate = ({
   currentDate,
@@ -65,9 +66,24 @@ const ModalDetailsDate = ({
                 </Descriptions>
               </Col>
               <Col xl={12} lg={12} md={12} sm={24} xs={24} className='mb-24'>
+                <Descriptions title='Detalles de médico'>
+                  <Descriptions.Item span={3} label='Médico'>
+                    {detailsDate.nombresM} {detailsDate.apPaternoM} {detailsDate.apMaternoM}
+                  </Descriptions.Item>
+                  <Descriptions.Item span={3} label='Correo'>
+                    {detailsDate.correoM}
+                  </Descriptions.Item>
+                  <Descriptions.Item label='Celular'>
+                    +51 {detailsDate.celularM}
+                  </Descriptions.Item>
+                </Descriptions>
+              </Col>
+              <Col xl={12} lg={12} md={12} sm={24} xs={24} className='mb-24'>
                 <Descriptions title={`Detalles de orden # ${String(detailsDate.numOrden).padStart(9, '0')}`}>
-                  <Descriptions.Item span={3} label='Observación'>
-                    {detailsDate.descOrden ? detailsDate.descOrden : 'No tiene observaciones'}
+                  <Descriptions.Item span={3} label='Vaucher'>
+                    <Image
+                      src={baseUrlImage + detailsDate.descOrden}
+                    />
                   </Descriptions.Item>
                   <Descriptions.Item label='Estado'>
                     {detailsDate.estadoOrden === 'P' && 'Pendiente'}
@@ -79,19 +95,6 @@ const ModalDetailsDate = ({
                   </Descriptions.Item>
                   <Descriptions.Item span={2} label='Forma de pago'>
                     {detailsDate.descMetodo}
-                  </Descriptions.Item>
-                </Descriptions>
-              </Col>
-              <Col xl={12} lg={12} md={12} sm={24} xs={24} className='mb-24'>
-                <Descriptions title='Detalles de médico'>
-                  <Descriptions.Item span={3} label='Médico'>
-                    {detailsDate.nombresM} {detailsDate.apPaternoM} {detailsDate.apMaternoM}
-                  </Descriptions.Item>
-                  <Descriptions.Item span={3} label='Correo'>
-                    {detailsDate.correoM}
-                  </Descriptions.Item>
-                  <Descriptions.Item label='Celular'>
-                    +51 {detailsDate.celularM}
                   </Descriptions.Item>
                 </Descriptions>
               </Col>

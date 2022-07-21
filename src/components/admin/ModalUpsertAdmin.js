@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from "react";
+import React, {useContext, useEffect, useRef, useState} from "react";
 import {
   Button,
   Col,
@@ -10,6 +10,8 @@ import {
 } from "antd";
 import openNotification from "../../utils/openNotification";
 import {createAdmin, createUser} from "../../utils/formsData";
+import {apiPath, axiosInstance} from "../../utils/api";
+import {MyContext, STORAGE_NAME_ADMIN} from "../../context/AuthContext";
 
 const ModalUpsertAdmin = ({
                             visible,
@@ -17,11 +19,12 @@ const ModalUpsertAdmin = ({
                             currentAdmin,
                             getAdminsList
 }) => {
+  const { authAdmin } = useContext(MyContext);
   const formRef = useRef();
-  const [loadingCreateAdmin ,setLoadingCreateAdmin] = useState(false);
+  const [loadingUpsertAdmin ,setLoadingUpsertAdmin] = useState(false);
 
   const handleCreateAdmin = async (data) => {
-    setLoadingCreateAdmin(true);
+    setLoadingUpsertAdmin(true);
     const dataFormat = {
       ...data
     }
@@ -30,7 +33,7 @@ const ModalUpsertAdmin = ({
       const { data: dataUser, success: successUser, message } = await createUser(dataFormat);
       if (!successUser) {
         openNotification('Usuario', message, 'warning');
-        setLoadingCreateAdmin(false);
+        setLoadingUpsertAdmin(false);
         return;
       }
       dataFormat.idUsuario = dataUser.idUsuario;
@@ -45,7 +48,53 @@ const ModalUpsertAdmin = ({
     } catch (e) {
       openNotification('Registro de pesonal', e.message, 'error');
     }
-    setLoadingCreateAdmin(false);
+    setLoadingUpsertAdmin(false);
+  }
+
+  const handleUpdateAdmin = async (data) => {
+    setLoadingUpsertAdmin(true);
+    const dataFormat = {
+      ...currentAdmin,
+      ...data
+    }
+
+    console.log(dataFormat)
+
+    try {
+      const {
+        data: { success: successUser, message: messageUser }
+      } = await axiosInstance.put(apiPath.admin.updateUsuario, dataFormat);
+
+      if (!successUser) {
+        openNotification('Actualización de personal', messageUser, 'warning');
+        setLoadingUpsertAdmin(false);
+        return;
+      } else {
+        if (!getAdminsList) {
+          openNotification('Actualización de datos', messageUser + '. Actualiza la pagina para ver los cambios.');
+          localStorage.setItem(STORAGE_NAME_ADMIN, JSON.stringify({
+            ...authAdmin,
+            apellidoMaterno: dataFormat.apellidoMaterno,
+            apellidoPaterno: dataFormat.apellidoPaterno,
+            nombres: dataFormat.nombres,
+            correo: dataFormat.correo,
+          }));
+          setVisible(false);
+        } else {
+          openNotification('Actualización de datos', messageUser);
+          getAdminsList();
+          setVisible(false);
+        }
+      }
+    } catch (e) {
+      openNotification('Registro de datos', e.message, 'error');
+    }
+    setLoadingUpsertAdmin(false);
+  }
+
+  const handleUpsertAdmin = async (values) => {
+    if (currentAdmin) await handleUpdateAdmin(values);
+    else await handleCreateAdmin(values);
   }
 
   useEffect(() => {
@@ -69,7 +118,7 @@ const ModalUpsertAdmin = ({
         <Button
           htmlType='submit'
           form='form-admin'
-          loading={loadingCreateAdmin}
+          loading={loadingUpsertAdmin}
         >
           {currentAdmin ? 'Actualizar' : 'Crear'}
         </Button>
@@ -84,7 +133,7 @@ const ModalUpsertAdmin = ({
           span: 15,
         }}
         layout="horizontal"
-        onFinish={handleCreateAdmin}
+        onFinish={handleUpsertAdmin}
         ref={formRef}
         style={{margin:0}}
       >
@@ -114,85 +163,123 @@ const ModalUpsertAdmin = ({
             >
               <Input />
             </Form.Item>
-            <Form.Item
-              label="Apellido Materno"
-              name='apellidoMaterno'
-              rules={[
-                {
-                  required: true,
-                  message: 'Completa este campo!'
-                }
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Correo"
-              name='correo'
-              rules={[
-                {
-                  type: 'email',
-                  message: 'Ingresa un corero valido!'
-                }
-              ]}
-            >
-              <Input />
-            </Form.Item>
+            {!currentAdmin && (
+              <>
+                <Form.Item
+                  label="Apellido Materno"
+                  name='apellidoMaterno'
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Completa este campo!'
+                    }
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  label="Correo"
+                  name='correo'
+                  rules={[
+                    {
+                      type: 'email',
+                      message: 'Ingresa un corero valido!'
+                    }
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+              </>
+            )}
           </Col>
           <Col xl={12} lg={12} md={10} sm={22} xs={22}>
-            <Form.Item
-              label="Nombre de Usuario"
-              name='usuario1'
-              rules={[
-                {
-                  required: true,
-                  message: 'Necesario para el ingreso!'
-                },
-                {
-                  min: 6,
-                  message: 'Tiene que ser mayor a 6 caracteres'
-                }
-              ]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Contraseña"
-              name='clave'
-              rules={[
-                {
-                  required: true,
-                  message: 'Ingresa una contraseña!'
-                },
-                {
-                  min: 6,
-                  message: 'Tiene que ser mayor a 8 caracteres'
-                }
-              ]}
-            >
-              <Input.Password
-                size='small'
-              />
-            </Form.Item>
-            <Form.Item
-              label="Rol"
-              name='rol'
-              rules={[
-                {
-                  required: true,
-                  message: 'Selecciona el rol!'
-                }
-              ]}
-            >
-              <Select
-                size='large'
-                placeholder='Selecciona'
+            {currentAdmin && (
+              <>
+                <Form.Item
+                  label="Apellido Materno"
+                  name='apellidoMaterno'
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Completa este campo!'
+                    }
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  label="Correo"
+                  name='correo'
+                  rules={[
+                    {
+                      type: 'email',
+                      message: 'Ingresa un corero valido!'
+                    }
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+              </>
+            )}
+            {!currentAdmin && (
+              <>
+                <Form.Item
+                  label="Nombre de Usuario"
+                  name='usuario1'
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Necesario para el ingreso!'
+                    },
+                    {
+                      min: 6,
+                      message: 'Tiene que ser mayor a 6 caracteres'
+                    }
+                  ]}
+                >
+                  <Input />
+                </Form.Item>
+                <Form.Item
+                  label="Contraseña"
+                  name='clave'
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Ingresa una contraseña!'
+                    },
+                    {
+                      min: 6,
+                      message: 'Tiene que ser mayor a 8 caracteres'
+                    }
+                  ]}
+                >
+                  <Input.Password
+                    size='small'
+                  />
+                </Form.Item>
+              </>
+            )}
+            {!currentAdmin && (
+              <Form.Item
+                label="Rol"
+                name='rol'
+                rules={[
+                  {
+                    required: true,
+                    message: 'Selecciona el rol!'
+                  }
+                ]}
               >
-                <Select.Option value='editor'>EDITOR</Select.Option>
-                <Select.Option value='admin'>ADMINISTRADOR</Select.Option>
-                <Select.Option value='lector'>LECTOR</Select.Option>
-              </Select>
-            </Form.Item>
+                <Select
+                  size='large'
+                  placeholder='Selecciona'
+                >
+                  <Select.Option value='editor'>EDITOR</Select.Option>
+                  <Select.Option value='admin'>ADMINISTRADOR</Select.Option>
+                  <Select.Option value='lector'>LECTOR</Select.Option>
+                </Select>
+              </Form.Item>
+            )}
           </Col>
         </Row>
       </Form>

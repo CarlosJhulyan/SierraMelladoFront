@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from "react";
+import React, {useContext, useEffect, useRef, useState} from "react";
 import {
   Button,
   Calendar,
@@ -11,6 +11,7 @@ import openNotification from "../../utils/openNotification";
 import moment from "moment";
 import {MyContext} from "../../context/AuthContext";
 import {InboxOutlined} from "@ant-design/icons";
+import {createDate, createOrder} from "../../utils/formsData";
 
 const formatCalendar = {
   "lang": {
@@ -60,6 +61,8 @@ const DatesPage = () => {
   const [loadingServices, setLoadingServices] = useState(false);
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [loadingPayment, setLoadingPayment] = useState(false);
+  const [loadingSave, setLoadingSave] = useState(false);
+  const formRef = useRef();
 
   const onPanelChange = (value) => {
     console.log(value.format('YYYY-MM-DD'));
@@ -134,6 +137,7 @@ const DatesPage = () => {
   }
 
   const handleSaveDate = async values => {
+    setLoadingSave(true);
     const importeTotal = parseFloat(services.find(item => item.idServicio === values.servicio).precio);
     const montoTotal = parseFloat(values.montoTotal);
     const dataFormat = {
@@ -145,8 +149,29 @@ const DatesPage = () => {
       montoTotal,
       vuelto: montoTotal - importeTotal,
       importeTotal,
+      vaucher: values.archivo[0].originFileObj
     }
-    console.log(dataFormat)
+
+    if (importeTotal > montoTotal) {
+      openNotification('Monto', 'El monto debe ser mayor o igual al precio del servicio', 'warning');
+      setLoadingSave(false);
+      return;
+    }
+
+    const { message, success, data } = await createOrder(dataFormat);
+    if (!success) {
+      openNotification('Orden', message, 'warning');
+      setLoadingSave(false);
+      return;
+    }
+    dataFormat.numOrden = data.numOrden;
+    const { message: messageDate, success: successDate, data: dataDate } = await createDate(dataFormat);
+    if (successDate) {
+      openNotification('Cita', messageDate);
+      formRef.current.resetFields();
+      console.log(dataDate);
+    } else openNotification('Cita', messageDate, 'warning');
+    setLoadingSave(false);
   }
 
   useEffect(() => {
@@ -173,6 +198,7 @@ const DatesPage = () => {
                 name='form-cita'
                 layout='vertical'
                 onFinish={handleSaveDate}
+                ref={formRef}
               >
                 <Row gutter={[24,0]} justify='space-between'>
                   <Col span={24}>
@@ -240,7 +266,7 @@ const DatesPage = () => {
                       rules={[
                         {
                           required: true,
-                          message: 'Descripción del caso necesario!'
+                          message: 'Escriba una descripción de su estado!'
                         }
                       ]}
                     >
@@ -365,6 +391,11 @@ const DatesPage = () => {
                           method='get'
                           multiple={false}
                           maxCount={1}
+                          beforeUpload={file => {
+                            const isImage = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/jpg';
+                            if (!isImage) openNotification('Archivo', 'El archivo tiene que ser de tipo imagen', 'warning');
+                            return isImage || Upload.LIST_IGNORE;
+                          }}
                         >
                           <p className="ant-upload-drag-icon">
                             <InboxOutlined />
@@ -390,8 +421,9 @@ const DatesPage = () => {
                       type='primary'
                       block
                       htmlType='submit'
+                      loading={loadingSave}
                     >
-                      Pagar
+                      Reservar
                     </Button>
                   </Col>
                 </Row>

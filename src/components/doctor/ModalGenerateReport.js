@@ -53,6 +53,17 @@ const ModalGenerateReport = ({
         'error'));
   }
 
+  const searchReport = async (numOrder) => {
+    try {
+      const { data: { success, data, message } } = await axiosInstance.get(`${apiPath.date.searchDate}/${numOrder}`);
+      if (success) {
+        return data.idCita;
+      } else openNotification('Búsqueda de cita', message, 'warning');
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   const handleGenerateReport = async (e) => {
     setLoadingGenerateMyReport(true);
     const dataFormat = {
@@ -60,6 +71,13 @@ const ModalGenerateReport = ({
       archivo: e.archivo[0].originFileObj,
       medico: authDoctor.idMedico,
     }
+
+    const cita = await searchReport(Number(dataFormat.numOrden));
+    if (!cita) {
+      setLoadingGenerateMyReport(false);
+      return;
+    }
+    dataFormat.cita = cita;
     const { message, success } = await generateReportToPatient(dataFormat);
     if (success) {
       openNotification('Informe', message);
@@ -128,6 +146,7 @@ const ModalGenerateReport = ({
                 ))}
               </Select>
             </Form.Item>
+
             <Form.Item
               label="Resumen"
               name='resumen'
@@ -139,6 +158,18 @@ const ModalGenerateReport = ({
               ]}
             >
               <Input />
+            </Form.Item>
+            <Form.Item
+              label="Número de orden"
+              name='numOrden'
+              rules={[
+                {
+                  required: true,
+                  message: 'Completa este campo!'
+                }
+              ]}
+            >
+              <Input type='number' />
             </Form.Item>
             <Form.Item
               label="Archivo"
@@ -160,6 +191,11 @@ const ModalGenerateReport = ({
                   method='get'
                   multiple={false}
                   maxCount={1}
+                  beforeUpload={file => {
+                    const isPdf = file.type === 'application/pdf';
+                    if (!isPdf) openNotification('Archivo', 'El archivo tiene que ser de tipo pdf', 'warning');
+                    return isPdf || Upload.LIST_IGNORE;
+                  }}
                 >
                   <p className="ant-upload-drag-icon">
                     <InboxOutlined />

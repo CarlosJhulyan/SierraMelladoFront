@@ -1,4 +1,4 @@
-import React, {useContext, useState} from "react";
+import React, {useContext, useRef, useState} from "react";
 
 import {
   Row,
@@ -7,55 +7,79 @@ import {
   Button,
   Descriptions,
   Avatar,
-  Switch,
-  message,
+  Form,
+  Upload, Input,
 } from "antd";
 
 import {
-  FacebookOutlined,
-  TwitterOutlined,
-  InstagramOutlined,
+  InboxOutlined,
 } from "@ant-design/icons";
 
-import {MyContext} from "../../context/AuthContext";
+import {MyContext, STORAGE_NAME_DOCTOR} from "../../context/AuthContext";
 import moment from "moment";
 import {baseUrlImage} from "../../config/backend";
+import ModalUpsertDoctor from "../../components/admin/ModalUpsertDoctor";
+import {changeDoctorAvatar, changePassword} from "../../utils/formsData";
+import openNotification from "../../utils/openNotification";
 
 function ProfilePage() {
+  const formAvatarRef = useRef();
+  const formPassRef = useRef();
   const { authDoctor } = useContext(MyContext);
-  const [imageURL, setImageURL] = useState(false);
-  const [, setLoading] = useState(false);
+  const [visibleModalUpsertDoctor, setVisibleModalUpsertDoctor] = useState(false);
+  const [loadingChangeAvatar, setLoadingChangeAvatar] = useState(false);
+  const [loadingChangePass, setLoadingChangePass] = useState(false);
 
-  const getBase64 = (img, callback) => {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => callback(reader.result));
-    reader.readAsDataURL(img);
+  const normFile = (e) => {
+    if (Array.isArray(e)) {
+      return e;
+    }
+    return e?.fileList;
   };
 
-  const beforeUpload = (file) => {
-    const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
-    if (!isJpgOrPng) {
-      message.error("You can only upload JPG/PNG file!");
-    }
-    const isLt2M = file.size / 1024 / 1024 < 2;
-    if (!isLt2M) {
-      message.error("Image must smaller than 2MB!");
-    }
-    return isJpgOrPng && isLt2M;
-  };
+  const handleChangePass = (values) => {
+    setLoadingChangePass(true);
+    changePassword({
+      idUsuario: authDoctor.idUsuario,
+      clave: values.clave
+    })
+      .then(({ success, message }) => {
+        if (success) {
+          openNotification('Cambio de contraseña', message);
+          formPassRef.current.resetFields();
+        } else openNotification('Cambio de contraseña', message, 'warning');
+        setLoadingChangePass(false);
+      })
+      .catch(e => openNotification(
+        'Cambio de contraseña',
+        'Error en la petición',
+        'error'
+      ));
+  }
 
-  const handleChange = (info) => {
-    if (info.file.status === "uploading") {
-      setLoading(false);
-      return;
-    }
-    if (info.file.status === "done") {
-      getBase64(info.file.originFileObj, (imageUrl) => {
-        setLoading(false);
-        setImageURL(false);
-      });
-    }
-  };
+  const handleChangeAvatar = (values) => {
+    setLoadingChangeAvatar(true);
+    changeDoctorAvatar({
+      idMedico: authDoctor.idMedico,
+      avatar: values.avatar[0].originFileObj
+    })
+      .then(({ success, message, data }) => {
+        if (success) {
+          formAvatarRef.current.resetFields();
+          localStorage.setItem(STORAGE_NAME_DOCTOR, JSON.stringify({
+            ...authDoctor,
+            avatar: data
+          }));
+          openNotification('Cambio de avatar', message);
+        } else openNotification('Cambio de avatar', message, 'warning');
+        setLoadingChangeAvatar(false);
+      })
+      .catch(e => openNotification(
+        'Cambio de avatar',
+        'Error en la petición',
+        'error'
+      ));
+  }
 
   const pencil = [
     <svg
@@ -97,7 +121,7 @@ function ProfilePage() {
                 <Avatar
                   size={74}
                   shape="square"
-                  src={baseUrlImage + authDoctor.avatar}
+                  src={authDoctor.avatar && baseUrlImage + authDoctor.avatar}
                   style={{background: '#48487F'}}
                 >
                   {!authDoctor.avatar && (
@@ -123,25 +147,92 @@ function ProfilePage() {
           <Card
             bordered={false}
             className="header-solid h-full"
-            title={<h6 className="font-semibold m-0">Platform Settings</h6>}
+            title={<h6 className="font-semibold m-0">Configurar mi cuenta</h6>}
           >
             <ul className="list settings-list">
               <li>
-                <h6 className="list-header text-sm text-muted">ACCOUNT</h6>
+                <h6 className="list-header text-sm text-muted">Cambiar mi contraseña</h6>
               </li>
+              <Form
+                onFinish={handleChangePass}
+                layout='vertical'
+                ref={formPassRef}
+              >
+                <Form.Item
+                  name='clave'
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Complete el campo!'
+                    },
+                    {
+                      min: 6,
+                      message: 'Mínimo de caracteres 6'
+                    }
+                  ]}
+                >
+                  <Input.Password size='small' />
+                </Form.Item>
+                <Form.Item>
+                  <Button
+                    block
+                    type='primary'
+                    htmlType='submit'
+                    loading={loadingChangePass}
+                  >
+                    Cambiar
+                  </Button>
+                </Form.Item>
+              </Form>
               <li>
-                <Switch defaultChecked />
-
-                <span>Email me when someone follows me</span>
+                <h6 className="list-header text-sm text-muted">Actualizar mi foto de perfil</h6>
               </li>
-              <li>
-                <Switch />
-                <span>Email me when someone answers me</span>
-              </li>
-              <li>
-                <Switch defaultChecked />
-                <span>Email me when someone mentions me</span>
-              </li>
+              <Form
+                onFinish={handleChangeAvatar}
+                ref={formAvatarRef}
+              >
+                <Form.Item>
+                  <Form.Item
+                    name="avatar"
+                    valuePropName="fileList"
+                    getValueFromEvent={normFile}
+                    noStyle
+                    rules={[
+                      {
+                        required: true,
+                        message: 'Adjunte una foto!'
+                      }
+                    ]}
+                  >
+                    <Upload.Dragger
+                      name='file'
+                      method='get'
+                      multiple={false}
+                      maxCount={1}
+                      beforeUpload={file => {
+                        const isImage = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/jpg';
+                        if (!isImage) openNotification('Archivo', 'El archivo tiene que ser de tipo imagen', 'warning');
+                        return isImage || Upload.LIST_IGNORE;
+                      }}
+                    >
+                      <p className="ant-upload-drag-icon">
+                        <InboxOutlined />
+                      </p>
+                      <p className="ant-upload-text">Clic aquí o arrastra tu imagen</p>
+                    </Upload.Dragger>
+                  </Form.Item>
+                </Form.Item>
+                <Form.Item>
+                  <Button
+                    block
+                    type='primary'
+                    htmlType='submit'
+                    loading={loadingChangeAvatar}
+                  >
+                    Subir Foto
+                  </Button>
+                </Form.Item>
+              </Form>
             </ul>
           </Card>
         </Col>
@@ -150,7 +241,14 @@ function ProfilePage() {
             bordered={false}
             title={<h6 className="font-semibold m-0">Información de Perfil</h6>}
             className="header-solid h-full card-profile-information"
-            extra={<Button type="link">{pencil}</Button>}
+            extra={
+              <Button
+                type="link"
+                onClick={() => setVisibleModalUpsertDoctor(true)}
+              >
+                {pencil}
+              </Button>
+            }
             bodyStyle={{ paddingTop: 0, paddingBottom: 16 }}
           >
             <Descriptions>
@@ -172,21 +270,18 @@ function ProfilePage() {
               <Descriptions.Item label="Fecha nacimiento" span={3}>
                 {moment(authDoctor.fechaNac).format('ll')}
               </Descriptions.Item>
-              <Descriptions.Item label="Social" span={3}>
-                <a href="#pablo" className="mx-5 px-5">
-                  {<TwitterOutlined />}
-                </a>
-                <a href="#pablo" className="mx-5 px-5">
-                  {<FacebookOutlined style={{ color: "#344e86" }} />}
-                </a>
-                <a href="#pablo" className="mx-5 px-5">
-                  {<InstagramOutlined style={{ color: "#e1306c" }} />}
-                </a>
-              </Descriptions.Item>
             </Descriptions>
           </Card>
         </Col>
       </Row>
+
+      {visibleModalUpsertDoctor && (
+        <ModalUpsertDoctor
+          currentDoctor={authDoctor}
+          visible={visibleModalUpsertDoctor}
+          setVisible={setVisibleModalUpsertDoctor}
+        />
+      )}
     </>
   );
 }

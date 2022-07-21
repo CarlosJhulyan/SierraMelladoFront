@@ -4,9 +4,9 @@ import {
   Button,
   Carousel,
   Col,
-  Form,
-  Input,
-  Row,
+  Form, Image,
+  Input, Modal,
+  Row, Typography,
 } from "antd";
 
 import slide1 from '../assets/images/slider1.png';
@@ -21,10 +21,14 @@ import {Link} from "react-router-dom";
 import {
   sendMessage
 } from '../utils/formsData';
+import moment from "moment";
 
 function HomePage() {
+  const { Title, Text, Paragraph } = Typography;
   const formRef = useRef();
   const [articles, setArticles] = useState([]);
+  const [currentArticle, setCurrentArticle] = useState({});
+  const [visibleModalArticle, setVisibleModalArticle] = useState(false);
   const [loadingSendMessage, setLoadingSendMessage] = useState(false);
 
   const getRecentArticles = () => {
@@ -125,7 +129,6 @@ function HomePage() {
               onFinish={handleSendMessage}
             >
               <Form.Item
-                label='Nombre'
                 name='nombreApellidoRem'
                 rules={[
                   {
@@ -135,11 +138,11 @@ function HomePage() {
                 ]}
               >
                 <Input
+                  placeholder='Nombre'
                   size='large'
                 />
               </Form.Item>
               <Form.Item
-                label='Correo'
                 name='correoRem'
                 rules={[
                   {
@@ -153,11 +156,11 @@ function HomePage() {
                 ]}
               >
                 <Input
+                  placeholder='Correo'
                   size='large'
                 />
               </Form.Item>
               <Form.Item
-                label='Mensaje'
                 name='contenido'
                 rules={[
                   {
@@ -175,6 +178,7 @@ function HomePage() {
                   size='large'
                   maxLength={300}
                   rows={5}
+                  placeholder='Mensaje'
                   // autoSize={true}
                 />
               </Form.Item>
@@ -232,6 +236,10 @@ function HomePage() {
                     <Button
                       type='primary'
                       className='warning'
+                      onClick={() => {
+                        setVisibleModalArticle(true);
+                        setCurrentArticle(article);
+                      }}
                     >
                       Leer más...
                     </Button>
@@ -242,6 +250,20 @@ function HomePage() {
           </Col>
         </Row>
       </div>
+
+      {visibleModalArticle && (
+        <Modal
+          title={currentArticle.titulo.toUpperCase()}
+          visible={visibleModalArticle}
+          onCancel={() => setVisibleModalArticle(false)}
+          footer={false}
+        >
+          <Image src={baseUrlImage + currentArticle.imagen} />
+          <Paragraph style={{textAlign: 'justify'}}>{currentArticle.contenido}</Paragraph>
+          <Paragraph style={{textAlign: 'left'}}>Autor: {currentArticle.autor}</Paragraph>
+          <Paragraph style={{textAlign: 'right'}}>Fecha publ. {moment(currentArticle.fechaCrea).format('lll')}</Paragraph>
+        </Modal>
+      )}
     </>
   );
 }

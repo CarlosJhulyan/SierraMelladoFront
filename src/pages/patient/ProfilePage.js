@@ -1,4 +1,4 @@
-import {useContext, useState} from "react";
+import {useContext, useRef, useState} from "react";
 
 import {
   Row,
@@ -7,54 +7,78 @@ import {
   Button,
   Descriptions,
   Avatar,
-  message, Form, Input,
+  Form, Input, Upload,
 } from "antd";
 
 import {
-  FacebookOutlined,
-  TwitterOutlined,
-  InstagramOutlined,
+  InboxOutlined,
 } from "@ant-design/icons";
 
-import {MyContext} from "../../context/AuthContext";
+import {MyContext, STORAGE_NAME_PATIENT} from "../../context/AuthContext";
 import moment from "moment";
+import ModalUpdatePatient from "../../components/patient/ModalUpdatePatient";
+import {changePassword, changePatientAvatar} from "../../utils/formsData";
+import openNotification from "../../utils/openNotification";
+import {baseUrlImage} from "../../config/backend";
 
 function ProfilePage() {
+  const formAvatarRef = useRef();
+  const formPassRef = useRef();
   const { authPatient } = useContext(MyContext);
+  const [visibleModalUpdate, setVisibleModalUpdate] = useState(false);
+  const [loadingChangeAvatar, setLoadingChangeAvatar] = useState(false);
+  const [loadingChangePass, setLoadingChangePass] = useState(false);
 
-  const [imageURL, setImageURL] = useState(false);
-  const [, setLoading] = useState(false);
-
-  const getBase64 = (img, callback) => {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => callback(reader.result));
-    reader.readAsDataURL(img);
+  const normFile = (e) => {
+    if (Array.isArray(e)) {
+      return e;
+    }
+    return e?.fileList;
   };
 
-  const beforeUpload = (file) => {
-    const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
-    if (!isJpgOrPng) {
-      message.error("You can only upload JPG/PNG file!");
-    }
-    const isLt2M = file.size / 1024 / 1024 < 2;
-    if (!isLt2M) {
-      message.error("Image must smaller than 2MB!");
-    }
-    return isJpgOrPng && isLt2M;
-  };
+  const handleChangePass = (values) => {
+    setLoadingChangePass(true);
+    changePassword({
+      idUsuario: authPatient.idUsuario,
+      clave: values.clave
+    })
+      .then(({ success, message }) => {
+        if (success) {
+          openNotification('Cambio de contraseña', message);
+          formPassRef.current.resetFields();
+        } else openNotification('Cambio de contraseña', message, 'warning');
+        setLoadingChangePass(false);
+      })
+      .catch(e => openNotification(
+        'Cambio de contraseña',
+        'Error en la petición',
+        'error'
+      ));
+  }
 
-  const handleChange = (info) => {
-    if (info.file.status === "uploading") {
-      setLoading(false);
-      return;
-    }
-    if (info.file.status === "done") {
-      getBase64(info.file.originFileObj, (imageUrl) => {
-        setLoading(false);
-        setImageURL(false);
-      });
-    }
-  };
+  const handleChangeAvatar = (values) => {
+    setLoadingChangeAvatar(true);
+    changePatientAvatar({
+      idPaciente: authPatient.idPaciente,
+      avatar: values.avatar[0].originFileObj
+    })
+      .then(({ success, message, data }) => {
+        if (success) {
+          formAvatarRef.current.resetFields();
+          localStorage.setItem(STORAGE_NAME_PATIENT, JSON.stringify({
+            ...authPatient,
+            avatar: data
+          }));
+          openNotification('Cambio de avatar', message);
+        } else openNotification('Cambio de avatar', message, 'warning');
+        setLoadingChangeAvatar(false);
+      })
+      .catch(e => openNotification(
+        'Cambio de avatar',
+        'Error en la petición',
+        'error'
+      ));
+  }
 
   const pencil = [
     <svg
@@ -95,10 +119,14 @@ function ProfilePage() {
                 <Avatar
                   size={74}
                   shape="square"
-                  src={authPatient.avatar}
+                  src={authPatient.avatar && baseUrlImage + authPatient.avatar}
                   style={{background: '#48487F'}}
                 >
-                  {authPatient.nombres[0]}{authPatient.apellidoPaterno[0]}
+                  {!authPatient.avatar && (
+                    <>
+                      {authPatient.nombres[0]}{authPatient.apellidoPaterno[0]}
+                    </>
+                  )}
                 </Avatar>
 
                 <div className="avatar-info">
@@ -121,28 +149,88 @@ function ProfilePage() {
           >
             <ul className="list settings-list">
               <li>
-                <h6 className="list-header text-sm text-muted">Actualizar mis credenciales</h6>
+                <h6 className="list-header text-sm text-muted">Cambiar mi contraseña</h6>
               </li>
-              <Form layout='vertical'>
-                <Form.Item label='Nombre de usuario'>
-                  <Input />
-                </Form.Item>
-                <Form.Item label='Contraseña'>
+              <Form
+                onFinish={handleChangePass}
+                layout='vertical'
+                ref={formPassRef}
+              >
+                <Form.Item
+                  name='clave'
+                  rules={[
+                    {
+                      required: true,
+                      message: 'Complete el campo!'
+                    },
+                    {
+                      min: 6,
+                      message: 'Mínimo de caracteres 6'
+                    }
+                  ]}
+                >
                   <Input.Password size='small' />
                 </Form.Item>
                 <Form.Item>
                   <Button
                     block
                     type='primary'
-                    disabled
+                    htmlType='submit'
+                    loading={loadingChangePass}
                   >
-                    Guardar
+                    Cambiar
                   </Button>
                 </Form.Item>
               </Form>
               <li>
                 <h6 className="list-header text-sm text-muted">Actualizar mi foto de perfil</h6>
               </li>
+              <Form
+                onFinish={handleChangeAvatar}
+                ref={formAvatarRef}
+              >
+                <Form.Item>
+                  <Form.Item
+                    name="avatar"
+                    valuePropName="fileList"
+                    getValueFromEvent={normFile}
+                    noStyle
+                    rules={[
+                      {
+                        required: true,
+                        message: 'Adjunte una foto!'
+                      }
+                    ]}
+                  >
+                    <Upload.Dragger
+                      name='file'
+                      method='get'
+                      multiple={false}
+                      maxCount={1}
+                      beforeUpload={file => {
+                        const isImage = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/jpg';
+                        if (!isImage) openNotification('Archivo', 'El archivo tiene que ser de tipo imagen', 'warning');
+                        return isImage || Upload.LIST_IGNORE;
+                      }}
+                    >
+                      <p className="ant-upload-drag-icon">
+                        <InboxOutlined />
+                      </p>
+                      <p className="ant-upload-text">Clic aquí o arrastra tu imagen</p>
+                    </Upload.Dragger>
+                  </Form.Item>
+                </Form.Item>
+                <Form.Item>
+                  <Button
+                    block
+                    type='primary'
+                    htmlType='submit'
+                    loading={loadingChangeAvatar}
+                  >
+                    Subir Foto
+                  </Button>
+                </Form.Item>
+              </Form>
             </ul>
           </Card>
         </Col>
@@ -151,7 +239,14 @@ function ProfilePage() {
             bordered={false}
             title={<h6 className="font-semibold m-0">Información de Perfil</h6>}
             className="header-solid h-full card-profile-information"
-            extra={<Button type="link">{pencil}</Button>}
+            extra={
+              <Button
+                type="link"
+                onClick={() => setVisibleModalUpdate(true)}
+              >
+                {pencil}
+              </Button>
+            }
             bodyStyle={{ paddingTop: 0, paddingBottom: 16 }}
           >
             <Descriptions>
@@ -170,21 +265,18 @@ function ProfilePage() {
               <Descriptions.Item label="Fecha nacimiento" span={3}>
                 {moment(authPatient.fechaNac).format('ll')}
               </Descriptions.Item>
-              <Descriptions.Item label="Social" span={3}>
-                <a href="#pablo" className="mx-1 px-1">
-                  {<TwitterOutlined />}
-                </a>
-                <a href="#pablo" className="mx-1 px-1">
-                  {<FacebookOutlined style={{ color: "#344e86" }} />}
-                </a>
-                <a href="#pablo" className="mx-1 px-1">
-                  {<InstagramOutlined style={{ color: "#e1306c" }} />}
-                </a>
-              </Descriptions.Item>
             </Descriptions>
           </Card>
         </Col>
       </Row>
+
+      {visibleModalUpdate && (
+        <ModalUpdatePatient
+          currentPatient={authPatient}
+          visible={visibleModalUpdate}
+          setVisible={setVisibleModalUpdate}
+        />
+      )}
     </>
   );
 }

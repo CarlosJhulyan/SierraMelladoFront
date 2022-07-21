@@ -59,7 +59,7 @@ const ArticlesPage = () => {
         <>
           <div className="ant-employed">
             <Text
-              style={{cursor:'pointer', margin: '0 auto'}}
+              style={{margin: '0 auto'}}
             >
               <FontAwesomeIcon icon={faEdit} />
             </Text>
@@ -159,11 +159,16 @@ const ArticlesPage = () => {
                           method='get'
                           multiple={false}
                           maxCount={1}
+                          beforeUpload={file => {
+                            const isImage = file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/jpg';
+                            if (!isImage) openNotification('Archivo', 'El archivo tiene que ser de tipo imagen', 'warning');
+                            return isImage || Upload.LIST_IGNORE;
+                          }}
                         >
                           <p className="ant-upload-drag-icon">
                             <InboxOutlined />
                           </p>
-                          <p className="ant-upload-text">Clic aquí o arrastra tu archivo .pdf</p>
+                          <p className="ant-upload-text">Clic aquí o arrastra tu imagen</p>
                         </Upload.Dragger>
                       </Form.Item>
                     </Form.Item>
